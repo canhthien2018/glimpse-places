@@ -1,0 +1,18 @@
+{
+  "name": "glimpse-places",
+  "private": true,
+  "type": "module",
+  "description": "Eateries, cafés and bars from Overture Maps Places, packed into PMTiles for the Glimpse map",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@duckdb/node-api": "2.0.0-r.1"
+  },
+  "devDependencies": {
+    "@mapbox/vector-tile": "^3.0.0",
+    "pbf": "^5.1.2",
+    "pmtiles": "^4.5.0"
+  }
+}

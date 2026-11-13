@@ -1,0 +1,55 @@
+# Monthly: the latest Overture release → venue tiles → GitHub Pages. Overture publishes around the third week
+# of each month; run by hand (Actions › Build venues › Run workflow) to rebuild at once.
+name: Build venues
+
+on:
+  schedule:
+    - cron: '0 3 28 * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['build.mjs', 'lib/**', 'package-lock.json', '.github/workflows/build.yml']
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: node --max-old-space-size=8192 build.mjs --out dist
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      # GitHub pauses scheduled workflows in a repository with no commits for 60 days: note the release built.
+      - name: Record the release
+        run: |
+          node -e "process.stdout.write(require('./dist/manifest.json').release + '\n')" > RELEASE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add RELEASE
+          git diff --cached --quiet || { git commit -m "Built Overture release $(cat RELEASE)" && git push; }
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
