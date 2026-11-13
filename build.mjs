@@ -38,7 +38,9 @@ const where = bbox
 
 const db = await DuckDBInstance.create(':memory:')
 const c = await db.connect()
-await c.run(`INSTALL httpfs; LOAD httpfs; SET s3_region='us-west-2'; SET preserve_insertion_order=false;`)
+// A GitHub runner has 16 GB: DuckDB keeps under 6 GB and spills to disk beyond it.
+await c.run(`INSTALL httpfs; LOAD httpfs; SET s3_region='us-west-2'; SET preserve_insertion_order=false;
+  SET memory_limit='${args.memory || '6GB'}'; SET temp_directory='${(args.tmp || 'duckdb-tmp').replace(/'/g, '')}';`)
 
 // Names that are an address or an advert, not a place: long, a phone number, a list of commas.
 const junk = `length(name) < 2 OR length(name) > 60

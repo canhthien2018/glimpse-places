@@ -31,7 +31,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: node --max-old-space-size=8192 build.mjs --out dist
+      - run: node --max-old-space-size=4096 build.mjs --out dist
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
